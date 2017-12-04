@@ -77,7 +77,7 @@ def drawColorFromCmap(rand_nummer, colormap):
 
 colors = [(229, 244, 227), (93, 169, 233), (0, 63, 145), (255, 255, 255), (109, 50, 109)]
 circleList = []
-words = [Frieder Carlo", "Dr. Dr. Hyper!"]
+words = ["Frieder Carlo", "Dr. Dr. Hyper!"]
 circle_poitions = [(0, 0), (0, screenHeight), (screenWidth, 0), (screenWidth, screenHeight)]
 
 # initialise pyaudio
