@@ -54,30 +54,15 @@ class Circle(object):
     def shrink(self):
         self.size -= 1
         
-class TextSurface(object):
-    def __init__(self, x, y, color, size, text):
-        self.x = x
-        self.y = y
-        self.color = color
-        self.size = size
-        self.text = text
-        self.myfont = pygame.font.SysFont('Wingdings', self.size)
-        self.textsurface = self.myfont.render(self.text, False, self.color)
-        self.lifetime = 100
-        
-    def shrink(self):
-        self.lifetime -= 1
-        self.x -=1
-        self.y -=1
-
-def drawColorFromCmap(rand_nummer, colormap):
-    rgb_tuple = colormap(rand_nummer)
-    return (np.int(rgb_tuple[0]*255), np.int(rgb_tuple[1]*255), np.int(rgb_tuple[2]*255))                        
+def drawColorFromCmap(rand_nummer):
+    rgb_tuple = plt.cm.plasma(rand_nummer)
+    return (np.int(rgb_tuple[0]*255), np.int(rgb_tuple[1]*255), np.int(rgb_tuple[2]*255))
+                                        
         
 
 colors = [(229, 244, 227), (93, 169, 233), (0, 63, 145), (255, 255, 255), (109, 50, 109)]
 circleList = []
-words = [Frieder Carlo", "Dr. Dr. Hyper!"]
+words = ["Frieder Carlo!", "Dr. Dr. Hyper"]
 circle_poitions = [(0, 0), (0, screenHeight), (screenWidth, 0), (screenWidth, screenHeight)]
 
 # initialise pyaudio
@@ -121,23 +106,17 @@ def draw_pygame():
 
         if not q.empty():
             b = q.get()
-            newCircle = TextSurface(random.randint(0, screenWidth), random.randint(0, screenHeight),
-                               drawColorFromCmap(random.randint(0, 255), plt.cm.rainbow),
-                               random.randint(20, 200), random.choice(words))
-#            newCircle = TextSurface(screenWidth/6, screenHeight/2,
-#                               drawColorFromCmap(random.randint(0, 255), plt.cm.jet),
-#                               100, random.choice(words))
+            newCircle = Circle(random.randint(0, screenWidth), random.randint(0, screenHeight),
+                               drawColorFromCmap(random.randint(0,255)), 100)
             circleList.append(newCircle)
 
-#            pygame.draw.circle(screen,
-#                             drawColorFromCmap(random.randint(0, 255), plt.cm.jet),
-#                             random.choice(circle_poitions), random.randint(20, np.int(0.9*screenWidth)))
-
+#        screen.fill(black)
+        
         for place, circle in enumerate(circleList):
-            if circle.lifetime < 1:
+            if circle.size < 1:
                 circleList.pop(place)
             else:
-                screen.blit(circle.textsurface,(circle.x, circle.y))
+                pygame.draw.circle(screen, circle.color, (circle.x, circle.y), circle.size)
 
             circle.shrink()
         
