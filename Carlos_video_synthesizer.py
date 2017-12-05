@@ -61,14 +61,15 @@ class TextSurface(object):
         self.color = color
         self.size = size
         self.text = text
-        self.myfont = pygame.font.SysFont('Wingdings', self.size)
+        self.myfont = pygame.font.SysFont('Padauk', self.size)
         self.textsurface = self.myfont.render(self.text, False, self.color)
         self.lifetime = 100
         
-    def shrink(self):
+    def move(self, increment_x, increment_y):
         self.lifetime -= 1
-        self.x -=1
-        self.y -=1
+        self.x +=increment_x
+        self.y +=increment_y
+        
 
 def drawColorFromCmap(rand_nummer, colormap):
     rgb_tuple = colormap(rand_nummer)
@@ -76,9 +77,8 @@ def drawColorFromCmap(rand_nummer, colormap):
         
 
 colors = [(229, 244, 227), (93, 169, 233), (0, 63, 145), (255, 255, 255), (109, 50, 109)]
-circleList = []
+itemList = []
 words = ["Frieder Carlo", "Dr. Dr. Hyper!"]
-circle_poitions = [(0, 0), (0, screenHeight), (screenWidth, 0), (screenWidth, screenHeight)]
 
 # initialise pyaudio
 p = pyaudio.PyAudio()
@@ -106,10 +106,17 @@ win_s = 4096 # fft size
 hop_s = buffer_size // 2 # hop size
 onset = aubio.onset("default", win_s, hop_s, samplerate)
 
+pitch_o = aubio.pitch("default", win_s, hop_s, samplerate)
+#pitch_o.set_unit("midi")
+pitch_o.set_tolerance(0.9)
+
+pitches = []
+
 q = queue.Queue()
 
 def draw_pygame():
     running = True
+    note_counter = 0
     while running:
         key = pygame.key.get_pressed()
 
@@ -120,30 +127,36 @@ def draw_pygame():
                 running = False
 
         if not q.empty():
+            note_counter +=1
             b = q.get()
-            newCircle = TextSurface(random.randint(0, screenWidth), random.randint(0, screenHeight),
-                               drawColorFromCmap(random.randint(0, 255), plt.cm.rainbow),
+            print(b)
+            newItem = TextSurface(random.randint(0, screenWidth), random.randint(0, screenHeight),
+                               drawColorFromCmap(np.int(b), plt.cm.rainbow),
                                random.randint(20, 200), random.choice(words))
 #            newCircle = TextSurface(screenWidth/6, screenHeight/2,
 #                               drawColorFromCmap(random.randint(0, 255), plt.cm.jet),
 #                               100, random.choice(words))
-            circleList.append(newCircle)
+            itemList.append(newItem)
 
 #            pygame.draw.circle(screen,
 #                             drawColorFromCmap(random.randint(0, 255), plt.cm.jet),
 #                             random.choice(circle_poitions), random.randint(20, np.int(0.9*screenWidth)))
 
-        for place, circle in enumerate(circleList):
-            if circle.lifetime < 1:
-                circleList.pop(place)
+        for place, item in enumerate(itemList):
+            if item.lifetime < 1:
+                itemList.pop(place)
             else:
-                screen.blit(circle.textsurface,(circle.x, circle.y))
+                screen.blit(item.textsurface,(item.x, item.y))
+                
+            item.move(-1, -1)
 
-            circle.shrink()
-        
         
         pygame.display.flip()
         clock.tick(10)
+        
+
+        if note_counter > 20:
+            note_counter = 0
 
 def get_onsets():
     while True:
@@ -152,9 +165,10 @@ def get_onsets():
             audiobuffer = stream.read(buffer_size, exception_on_overflow=False)
             signal = np.fromstring(audiobuffer, dtype=np.float32)
 
-
+            pitch = pitch_o(signal)[0]
+#            print(pitch)
             if onset(signal):
-                q.put(True)
+                q.put(pitch)
 
         except KeyboardInterrupt:
             print("*** Ctrl+C pressed, exiting")

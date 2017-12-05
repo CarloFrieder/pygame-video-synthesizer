@@ -61,7 +61,7 @@ class TextSurface(object):
         self.color = color
         self.size = size
         self.text = text
-        self.myfont = pygame.font.SysFont('Wingdings', self.size)
+        self.myfont = pygame.font.SysFont('TlwgTypewriter', self.size)
         self.textsurface = self.myfont.render(self.text, False, self.color)
         self.lifetime = 100
         
