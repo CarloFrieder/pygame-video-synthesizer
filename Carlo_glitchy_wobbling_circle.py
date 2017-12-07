@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Created on Thu Dec  7 22:54:20 2017
+
+@author: pkreyenb
+"""
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
 Created on Thu Dec  7 21:07:26 2017
 
 @author: pkreyenb
@@ -107,22 +115,9 @@ stream = p.open(format=pyaudio_format,
 
 time.sleep(1)
 
-# setup onset detector
-tolerance = 0.8
-win_s = 4096 # fft size
-hop_s = buffer_size // 2 # hop size
-onset = ab.onset("default", win_s, hop_s, samplerate)
-
-pitch_o = ab.pitch("default", win_s, hop_s, samplerate)
-pitch_o.set_unit("midi")
-pitch_o.set_tolerance(0.9)
-
-sound_features = [] #init empty list to later contain note, freq and energy
-
-q = queue.Queue()
-
 item = Circle(screenWidth//2, screenHeight//2,
-              random.choice(colors), 100, 0, 1e4, 10)
+              (255,255,255), 100, 0, 1e4, 10)
+print(item.color)
 
 running = True
 while running:
@@ -139,25 +134,18 @@ while running:
         audiobuffer = stream.read(buffer_size, exception_on_overflow=False)
         signal = np.fromstring(audiobuffer, dtype=np.float32)
 
-        pitch_midi = pitch_o(signal)[0]
-        pitch_note = ab.midi2note(np.int(pitch_midi))
-        pitch_freq = ab.miditofreq(pitch_midi)
         energy = np.sum(signal**2)/len(signal)
-#            print(pitch_note)
-        sound_features = [pitch_note, pitch_freq, energy]
 
     except KeyboardInterrupt:
         print("*** Ctrl+C pressed, exiting")
         break
 
-    item.energy = sound_features[2]
+    item.energy = energy
     screen.fill(black)
     item.wobble(screen)
                 
-        
-                
     pg.display.flip()
-    clock.tick(90)
+    clock.tick(180)
 
 stream.stop_stream()
 stream.close()

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Dec  7 21:07:26 2017
+Created on Thu Dec  7 23:10:25 2017
 
 @author: pkreyenb
 """
+
 
 import pyaudio
 import sys
@@ -67,6 +68,7 @@ class Circle(object):
 
     def draw(self, surface):
         pg.draw.circle(surface, self.color, (self.x, self.y), self.size)
+#        pg.draw.circle(surface, (0,0,0), (self.x, self.y), self.size-4)
 
     def wobble(self, surface):
         self.lifetime -= 1
@@ -113,52 +115,56 @@ win_s = 4096 # fft size
 hop_s = buffer_size // 2 # hop size
 onset = ab.onset("default", win_s, hop_s, samplerate)
 
-pitch_o = ab.pitch("default", win_s, hop_s, samplerate)
-pitch_o.set_unit("midi")
-pitch_o.set_tolerance(0.9)
-
-sound_features = [] #init empty list to later contain note, freq and energy
+item = Circle(screenWidth//2, screenHeight//2,
+              (255,255,255), 100, 0, 1e4, 10)
 
 q = queue.Queue()
 
-item = Circle(screenWidth//2, screenHeight//2,
-              random.choice(colors), 100, 0, 1e4, 10)
+def draw_pygame():
+    running = True
+    while running:
+        key = pg.key.get_pressed()
 
-running = True
-while running:
-    key = pg.key.get_pressed()
-
-    if key[pg.K_q]:
-        running = False
-    for event in pg.event.get():
-        if event.type == pg.QUIT:
+        if key[pg.K_q]:
             running = False
-            
-    try:
-        buffer_size = 2048 # needed to change this to get undistorted audio
-        audiobuffer = stream.read(buffer_size, exception_on_overflow=False)
-        signal = np.fromstring(audiobuffer, dtype=np.float32)
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                running = False
+        b = q.get()
+        item.energy = b
+        screen.fill(black)
+        item.wobble(screen)
 
-        pitch_midi = pitch_o(signal)[0]
-        pitch_note = ab.midi2note(np.int(pitch_midi))
-        pitch_freq = ab.miditofreq(pitch_midi)
-        energy = np.sum(signal**2)/len(signal)
-#            print(pitch_note)
-        sound_features = [pitch_note, pitch_freq, energy]
-
-    except KeyboardInterrupt:
-        print("*** Ctrl+C pressed, exiting")
-        break
-
-    item.energy = sound_features[2]
-    screen.fill(black)
-    item.wobble(screen)
                 
+        pg.display.flip()
+        clock.tick(180)
         
-                
-    pg.display.flip()
-    clock.tick(90)
 
+def get_energy():
+    onset_counter = 0
+    while True:
+        try:
+            buffer_size = 2048 # needed to change this to get undistorted audio
+            audiobuffer = stream.read(buffer_size, exception_on_overflow=False)
+            signal = np.fromstring(audiobuffer, dtype=np.float32)
+            if onset(signal):
+                onset_counter +=1
+                if np.mod(onset_counter, 5) == 0:
+                    item.color = drawColorFromCmap(random.randint(0,255), plt.cm.rainbow)
+            energy = np.sum(signal**2)/len(signal)
+            q.put(energy)
+            
+
+        except KeyboardInterrupt:
+            print("*** Ctrl+C pressed, exiting")
+            break
+
+
+t = Thread(target=get_energy, args=())
+t.daemon = True
+t.start()
+
+draw_pygame()
 stream.stop_stream()
 stream.close()
 pg.display.quit()
