@@ -68,7 +68,7 @@ class Circle(object):
         self.lifetime = lifetime
 
     def draw(self, surface):
-        pygame.gfxdraw.full_circle(surface, self.x, self.y, self.size, self.color)
+        pygame.gfxdraw.filled_circle(surface, self.x, self.y, self.size, self.color)
 #        pg.draw.circle(surface, (0,0,0), (self.x, self.y), self.size-4)
 
     def wobble(self, surface):
