@@ -39,11 +39,11 @@ if not args.input:
 pygame.init()
 
 if args.f:
-    screenWidth, screenHeight = 1024, 768
+    screenWidth, screenHeight = 1280, 720
     screen = pygame.display.set_mode((screenWidth, screenHeight), pygame.FULLSCREEN | pygame.HWSURFACE | pygame.DOUBLEBUF)
 
 else:
-    screenWidth, screenHeight = 600, 600
+    screenWidth, screenHeight = 1280, 720
     screen = pygame.display.set_mode((screenWidth, screenHeight))
 
 white = (255, 255, 255)

@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import aubio as ab
 
 import pygame as pg
+import pygame.gfxdraw
 pg.font.init() # you have to call this at the start, 
                    # if you want to use this module.
 import random
@@ -43,11 +44,11 @@ if not args.input:
 pg.init()
 
 if args.f:
-    screenWidth, screenHeight = 1024, 768
+    screenWidth, screenHeight = 1280, 720
     screen = pg.display.set_mode((screenWidth, screenHeight), pg.FULLSCREEN | pg.HWSURFACE | pg.DOUBLEBUF)
 
 else:
-    screenWidth, screenHeight = 600, 600
+    screenWidth, screenHeight = 1280, 720
     screen = pg.display.set_mode((screenWidth, screenHeight))
 
 white = (255, 255, 255)
@@ -67,7 +68,7 @@ class Circle(object):
         self.lifetime = lifetime
 
     def draw(self, surface):
-        pg.draw.circle(surface, self.color, (self.x, self.y), self.size)
+        pygame.gfxdraw.full_circle(surface, self.x, self.y, self.size, self.color)
 #        pg.draw.circle(surface, (0,0,0), (self.x, self.y), self.size-4)
 
     def wobble(self, surface):
@@ -137,7 +138,7 @@ def draw_pygame():
 
                 
         pg.display.flip()
-        clock.tick(180)
+        clock.tick(60)
         
 
 def get_energy():
